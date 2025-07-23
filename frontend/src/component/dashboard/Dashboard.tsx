@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from "react-router-dom";
-
+import Favorites from "./routes/favorites";
 
 const menu = [
   { name: "My plants", path: "plants" },

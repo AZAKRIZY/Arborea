@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import plant from "../assets/plant.png";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const Nav = () => {
   const [show, setShow] = useState(false);
-  const [user, setUser] = useState<{ username: string } | null>(null);
-  const navigate = useNavigate();
+  const { isAuthenticated, logout } = useAuth();
+  const [username, setUsername] = useState<string | null>(null);
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     setShow(false);
@@ -15,27 +17,27 @@ const Nav = () => {
   }, []);
 
   useEffect(() => {
-    const auth = localStorage.getItem("arborea_auth");
-    if (auth) {
-      try {
-        const parsed = JSON.parse(auth);
-        setUser(parsed.user || null);
-      } catch {
-        setUser(null);
+    if (isAuthenticated) {
+      const auth = localStorage.getItem("arborea_auth");
+      if (auth) {
+        try {
+          const parsed = JSON.parse(auth);
+          setUsername(parsed.user?.username || null);
+        } catch {
+          setUsername(null);
+        }
       }
     } else {
-      setUser(null);
+      setUsername(null);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   const handleLogout = () => {
-    localStorage.removeItem("arborea_auth");
-    setUser(null);
+    logout();
     navigate("/signIn");
   };
 
-  // Hide dashboard button if already on a dashboard route
-  const isOnDashboard = location.pathname.startsWith("/dashboard");
+  const isDashboard = location.pathname.startsWith("/dashboard");
 
   return (
     <div
@@ -49,8 +51,8 @@ const Nav = () => {
           <h1 className="text-xl font-bold">Arborea</h1>
         </div>
       </Link>
-      <div>
-        {!user ? (
+      <div className="flex items-center">
+        {!isAuthenticated ? (
           <Link to="/SignIn">
             <button
               type="button"
@@ -60,24 +62,24 @@ const Nav = () => {
             </button>
           </Link>
         ) : (
-          <div className="flex items-center gap-3">
-            <span className="font-semibold text-green-800">
-              {user.username}
+          <>
+            <span className="mx-2 text-green-700 font-semibold">
+              {username}
             </span>
             <button
               type="button"
-              className="bg-red-200 text-red-700 px-3 py-2 rounded hover:bg-red-300 font-bold"
+              className="bg-red-100 text-red-700 px-3 py-2 rounded hover:bg-red-200 font-bold shadow border border-red-200 mx-2"
               onClick={handleLogout}
             >
               Logout
             </button>
-          </div>
+          </>
         )}
-        {!isOnDashboard && (
+        {!isDashboard && (
           <Link to="/dashboard">
             <button
               type="button"
-              className="bg-green-600 hover:cursor-pointer text-white px-4 py-2 rounded hover:bg-green-700"
+              className="bg-green-600 hover:cursor-pointer text-white px-4 py-2 rounded hover:bg-green-700 mx-2"
             >
               Dashboard
             </button>
